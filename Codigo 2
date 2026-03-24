@@ -1,224 +1,230 @@
-from datetime import datetime
+
+from datetime import datetime 
 from collections import deque
 
-TIPOS_ATENCION = {'Extracción', 'Consulta'}
-PRIORIDADES = {'Urgente', 'Normal'}
-
 class Cliente:
+
     def __init__(self, cedula, nombre, telefono, direccion, tipo_atencion, prioridad, fecha):
-        self.cedula = self.validar_cedula(cedula)
-        self.nombre = nombre.strip()
-        self.telefono = telefono.strip()
-        self.direccion = direccion.strip()
-        self.tipo_atencion = self.validar_tipo_atencion(tipo_atencion)
-        self.prioridad = self.validar_prioridad(prioridad)
+
+        self.cedula = int(cedula)
+        self.nombre = nombre
+        self.telefono = telefono 
+        self.direccion = direccion
+        self.tipo_atencion = tipo_atencion
+        self.prioridad = prioridad
         self.fecha = self.validar_fecha(fecha)
 
-    @staticmethod
-    def validar_cedula(cedula):
-        try:
-            valor = int(cedula)
-            if valor <= 0:
-                raise ValueError
-            return valor
-        except Exception:
-            raise ValueError('Cédula inválida. Debe ser un número entero positivo.')
+    def validar_fecha(self, fecha):
 
-    @staticmethod
-    def validar_tipo_atencion(tipo):
-        tipo = tipo.strip().capitalize()
-        if tipo not in TIPOS_ATENCION:
-            raise ValueError(f"Tipo de atención inválido. Opciones: {', '.join(TIPOS_ATENCION)}")
-        return tipo
-
-    @staticmethod
-    def validar_prioridad(prioridad):
-        prioridad = prioridad.strip().capitalize()
-        if prioridad not in PRIORIDADES:
-            raise ValueError(f"Prioridad inválida. Opciones: {', '.join(PRIORIDADES)}")
-        return prioridad
-
-    @staticmethod
-    def validar_fecha(fecha):
-        try:
-            return datetime.strptime(fecha.strip(), '%Y-%m-%d')
-        except Exception:
-            raise ValueError('Fecha inválida. Use formato YYYY-MM-DD.')
-
+        while True:
+            try:
+                return datetime.strptime(fecha, "%Y-%m-%d")
+            except: 
+                fecha = input ("Fecha no válida. Por favor, ingrese la fecha en formato YYYY-MM-DD: ")
+    
     def __str__(self):
-        return (f"{self.cedula} - {self.nombre} - Tel: {self.telefono} - "
-                f"Dir: {self.direccion} - Tipo: {self.tipo_atencion} - Prioridad: {self.prioridad} - "
-                f"Fecha: {self.fecha.strftime('%Y-%m-%d')}")
+        return (f"{self.cedula} - {self.nombre} - Tel: {self.telefono} - "f"Dir: {self.direccion} - Tipo: {self.tipo_atencion} - Prioridad: {self.prioridad} - Fecha: {self.fecha.strftime('%Y-%m-%d')}")
+    
+    #PILA (URGENTES)
 
+    class Pila: 
 
-class Pila:
-    def __init__(self):
-        self.items = []
+        def __init__(self):
+            self.items = []
 
-    def push(self, cliente):
-        self.items.append(cliente)
+        def push(self, cliente): 
+            self.items.append(cliente)
 
-    def pop(self):
-        return self.items.pop() if self.items else None
+        def pop(self):
+            if self.items:
+                return self.items.pop()
+            
+        def mostrar(self):
+            if not self.items:
+                print("No hay clientes urgentes, PILA vacía.")
 
-    def is_empty(self):
-        return len(self.items) == 0
-
-    def mostrar(self):
-        if self.is_empty():
-            print('No hay clientes urgentes, PILA vacía.')
             return
-        print('Clientes urgentes en la PILA (LIFO):')
-        for c in reversed(self.items):
-            print(c)
+            
+            print("Clientes urgentes en la PILA (LIFO):")
+            for c in reversed(self.items):
+                print(c)
+    
+    #COLA (NO URGENTES O AGENDA)
 
+    class Cola:
 
-class Cola:
-    def __init__(self):
-        self.items = deque()
+        def __init__(self):
+            self.items = deque()
 
-    def encolar(self, cliente):
-        self.items.append(cliente)
+        def encolar(self, cliente):
+            self.items.append(cliente)
 
-    def desencolar(self):
-        return self.items.popleft() if self.items else None
+        def desencolar(self):
+            if self.items:
+                return self.items.popleft()
+            
+        def mostrar(self):
+            if not self.items:
+                print("No hay clientes en la agenda, COLA vacía.")
+                return
+            
+            print("Clientes en la agenda (FIFO):")
+            for c in self.items:
+                print(c)
 
-    def is_empty(self):
-        return len(self.items) == 0
-
-    def mostrar(self):
-        if self.is_empty():
-            print('No hay clientes en la agenda, COLA vacía.')
-            return
-        print('Clientes en la agenda (FIFO):')
-        for c in self.items:
-            print(c)
-
+#VALIDACIONES
 
 def leer_entero(mensaje, opciones):
+
     while True:
         try:
             valor = int(input(mensaje))
             if valor in opciones:
                 return valor
-            print(f'Por favor, ingrese una opción válida: {opciones}')
+            print(f"Por favor, ingrese un número entero válido: {opciones}")
         except ValueError:
-            print('Entrada no válida. Por favor, ingrese un número entero.')
+            print("Entrada no válida. Por favor, ingrese un número entero.")
 
-
-def leer_texto(mensaje):
-    valor = input(mensaje).strip()
-    if not valor:
-        raise ValueError('El valor no puede estar vacío.')
-    return valor
-
+#CREAR PILA DE URGENCIAS
 
 def generar_pila(clientes):
-    filtrados = [c for c in clientes if c.tipo_atencion == 'Extracción' and c.prioridad == 'Urgente']
-    if not filtrados:
-        print('No hay clientes urgentes para extracción.')
-        return Pila()
 
-    filtrados.sort(key=lambda c: c.fecha)
-    pila = Pila()
+    filtrados = [ c for c in clientes
+                   if c.tipo_atencion == "Extracción" and c.prioridad == "Urgente"]
+    
+    if not filtrados:
+        print("No hay clientes urgentes para extracción.")
+        return None
+    
+    filtrados.sort(key=lambda c: c.fecha)  # Ordenar por fecha (más antigua primero)
+
+    pila = pila()
     for c in filtrados:
         pila.push(c)
-    print('PILA de clientes urgentes para extracción generada.')
+
+    print ("PILA de clientes urgentes para extracción generada.")
     return pila
 
+#GENERAR COLA 
 
 def generar_cola(clientes):
-    cola = Cola()
+
+    cola = cola ()
+
     if not clientes:
-        print('No hay clientes para generar la agenda.')
+        print("No hay clientes para generar la agenda.")
         return cola
 
-    clientes_ordenados = sorted(clientes, key=lambda c: c.fecha)
+    clientes_ordenados = sorted(clientes, key=lambda c: c.fecha)  # Ordenar por fecha (más antigua primero)
+
     for c in clientes_ordenados:
         cola.encolar(c)
-    print('Cola de clientes para agenda generada.')
+
+    print("Cola de clientes para agenda generada.")
     return cola
 
+#ATENDER COLA 
 
 def atender_cola(cola):
-    if not cola or cola.is_empty():
-        print('No hay clientes en la agenda para atender.')
+
+    if not cola or not cola.items:
+        print("No hay clientes en la agenda para atender.")
+        return
+    
+    print("Atendiendo clientes en la agenda:")
+
+    while cola.items:
+        cliente = cola.desencolar()
+        print(f"Atendiendo a: {cliente}")
+
+# ESTADÍSTICAS
+
+def estadisticas(clientes, pila, cola):
+    if not clientes:
+        print("No hay clientes registrados")
         return
 
-    print('Atendiendo clientes en la agenda:')
-    while not cola.is_empty():
-        cliente = cola.desencolar()
-        print(f'Atendiendo a: {cliente}')
-
-
-def mostrar_estadisticas(clientes):
     total = len(clientes)
-    urgentes = sum(1 for c in clientes if c.prioridad == 'Urgente')
-    extracciones = sum(1 for c in clientes if c.tipo_atencion == 'Extracción')
-    consultas = sum(1 for c in clientes if c.tipo_atencion == 'Consulta')
+    urgentes = sum(1 for c in clientes if c.prioridad == "Urgente")
+    extracciones = sum(1 for c in clientes if c.tipo_atencion == "Extracción")
 
-    print('--- Estadísticas ---')
-    print(f'Total de clientes: {total}')
-    print(f'Urgente: {urgentes}, Normal: {total - urgentes}')
-    print(f'Extracción: {extracciones}, Consulta: {consultas}')
+    en_pila = len(pila.items) if pila else 0
+    en_cola = len(cola.items) if cola else 0
 
+#PROXIMA CITA
+
+    proxima = min(clientes, key=lambda x: x.fecha)
+
+    print("\n---ESTADÍSTICAS DEL SISTEMA ---")
+    print("Total de clientes:", total)
+    print("Clientes urgentes:", urgentes)
+    print("Extracciones:", extracciones)
+    print("Clientes en pila:", en_pila)
+    print("Clientes en cola:", en_cola)
+    print("Próxima cita:", proxima)
+
+#MENÚ PRINCIPAL
 
 def menu():
+
     clientes = []
-    pila_urgentes = Pila()
-    cola_agenda = Cola()
+    pila_urgentes = None
+    cola_agenda = None
 
     while True:
-        print('\n--- MENÚ PRINCIPAL ---')
-        print('1. Agregar cliente')
-        print('2. Generar PILA de urgencias')
-        print('3. Mostrar PILA de urgencias')
-        print('4. Generar COLA de agenda')
-        print('5. Mostrar COLA de agenda')
-        print('6. Atender clientes en la agenda')
-        print('7. Mostrar estadísticas')
-        print('8. Salir')
+        print("\n--- MENÚ PRINCIPAL ---")
+        print("1. Agregar cliente")
+        print("2. Generar PILA de urgencias")
+        print("3. Mostrar PILA de urgencias")
+        print("4. Generar COLA de agenda")
+        print("5. Mostrar COLA de agenda")
+        print("6. Atender clientes en la agenda")
+        print("7. Mostrar estadísticas")
+        print("8. Salir")
 
-        opcion = leer_entero('Seleccione una opción: ', [1, 2, 3, 4, 5, 6, 7, 8])
+        opcion = leer_entero("Seleccione una opción: ", [1, 2, 3, 4, 5, 6, 7, 8])
 
         if opcion == 1:
-            try:
-                cedula = leer_texto('Ingrese cédula: ')
-                nombre = leer_texto('Ingrese nombre: ')
-                telefono = leer_texto('Ingrese teléfono: ')
-                direccion = leer_texto('Ingrese dirección: ')
-                tipo_atencion = leer_texto('Ingrese tipo de atención (Extracción/Consulta): ')
-                prioridad = leer_texto('Ingrese prioridad (Urgente/Normal): ')
-                fecha = leer_texto('Ingrese fecha (YYYY-MM-DD): ')
+            cedula = input("Ingrese cédula: ")
+            nombre = input("Ingrese nombre: ")
+            telefono = input("Ingrese teléfono: ")
+            direccion = input("Ingrese dirección: ")
+            tipo_atencion = input("Ingrese tipo de atención (Extracción/Consulta): ")
+            prioridad = input("Ingrese prioridad (Urgente/Normal): ")
+            fecha = input("Ingrese fecha (YYYY-MM-DD): ")
 
-                cliente = Cliente(cedula, nombre, telefono, direccion, tipo_atencion, prioridad, fecha)
-                clientes.append(cliente)
-                print('Cliente agregado exitosamente.')
-            except ValueError as e:
-                print(f'Error al crear cliente: {e}')
+            cliente = Cliente(cedula, nombre, telefono, direccion, tipo_atencion, prioridad, fecha)
+            clientes.append(cliente)
+            print("Cliente agregado exitosamente.")
 
         elif opcion == 2:
             pila_urgentes = generar_pila(clientes)
 
         elif opcion == 3:
-            pila_urgentes.mostrar()
+            if pila_urgentes:
+                pila_urgentes.mostrar()
+            else:
+                print("No se ha generado la PILA de urgencias.")
 
         elif opcion == 4:
             cola_agenda = generar_cola(clientes)
 
         elif opcion == 5:
-            cola_agenda.mostrar()
+            if cola_agenda:
+                cola_agenda.mostrar()
+            else:
+                print("No se ha generado la COLA de agenda.")
 
         elif opcion == 6:
             atender_cola(cola_agenda)
 
         elif opcion == 7:
-            mostrar_estadisticas(clientes)
+            estadisticas(clientes, pila_urgentes, cola_agenda)
 
         elif opcion == 8:
-            print('Saliendo del programa.')
+            print("Saliendo del programa.")
             break
 
+    # EJECUTAR EL MENÚ PRINCIPAL
 
-if __name__ == '__main__':
     menu()
