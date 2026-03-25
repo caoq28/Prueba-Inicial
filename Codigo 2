@@ -23,7 +23,9 @@ class Cliente:
                 fecha = input ("Fecha no válida. Por favor, ingrese la fecha en formato YYYY-MM-DD: ")
     
     def __str__(self):
-        return (f"{self.cedula} - {self.nombre} - Tel: {self.telefono}" - f" Dir: {self.direccion} - Tipo: {self.tipo_atencion}" - f" Prioridad: {self.prioridad} - Fecha: {self.fecha.strftime('%Y-%m-%d')}")
+        return (f"{self.cedula} - {self.nombre} - Tel: {self.telefono} - " +
+                f"Dir: {self.direccion} - Tipo: {self.tipo_atencion} - " +
+                f"Prioridad: {self.prioridad} - Fecha: {self.fecha.strftime('%Y-%m-%d')}")
     
  # PILA DE CLIENTES
 
@@ -39,7 +41,7 @@ class Pila:
         if self.items:
             return self.items.pop()
         
-    def mostar(self):
+    def mostrar(self):
         if not self.items:
             print("No hay clientes en la pila.")
             return
@@ -109,10 +111,18 @@ def generar_pila(clientes):
 
 def generar_cola(clientes):
 
+    filtrados = [
+        cliente for cliente in clientes 
+        if cliente.tipo_atencion.lower() == "Extracción".lower()
+    ]
+
+    if not filtrados:
+        print("No hay clientes que cumplan con los criterios para la cola de extracciones.")
+        return None
+
+    ordenados = sorted(filtrados, key=lambda cliente: cliente.fecha)
+
     cola = Cola()
-
-    ordenados = sorted(clientes, key=lambda cliente: cliente.fecha)
-
     for cliente in ordenados:
         cola.enqueue(cliente)
     return cola
@@ -126,9 +136,8 @@ def atender_cola(cola):
         return
     
     print("Atendiendo al siguiente cliente en la cola:")
-
-    while cola.items:
-        print("Atendiendo a:", cola.dequeue())
+    cliente = cola.dequeue()
+    print(cliente)
 
 # ESTADISTICAS
 
@@ -170,43 +179,43 @@ def menu():
         
         opcion = leer_opcion("Seleccione una opción: ", range(1, 9))
 
-    if opcion == 1:
+        if opcion == 1:
 
-        cliente = Cliente(
-            cedula = input("Ingrese la cédula del cliente: "),
-            nombre = input("Ingrese el nombre del cliente: "),
-            telefono = input("Ingrese el teléfono del cliente: "),
-            direccion = input("Ingrese la dirección del cliente: "),
-            tipo_atencion = input("Ingrese el tipo de atención (Extracción o Consulta): "),
-            prioridad = input("Ingrese la prioridad (Urgente o Normal): "),
-            fecha = input("Ingrese la fecha de atención (YYYY-MM-DD): ")
-        )
+            cliente = Cliente(
+                cedula = input("Ingrese la cédula del cliente: "),
+                nombre = input("Ingrese el nombre del cliente: "),
+                telefono = input("Ingrese el teléfono del cliente: "),
+                direccion = input("Ingrese la dirección del cliente: "),
+                tipo_atencion = input("Ingrese el tipo de atención (Extracción o Consulta): "),
+                prioridad = input("Ingrese la prioridad (Urgente o Normal): "),
+                fecha = input("Ingrese la fecha de atención (YYYY-MM-DD): ")
+            )
 
-        clientes.append(cliente)
-        print("Cliente registrado exitosamente.") 
+            clientes.append(cliente)
+            print("Cliente registrado exitosamente.") 
 
-    elif opcion == 2:
-        pila = generar_pila(clientes)
-    
-    elif opcion == 3:
-        if pila:
-            pila.mostar()
+        elif opcion == 2:
+            pila = generar_pila(clientes)
+        
+        elif opcion == 3:
+            if pila:
+                pila.mostrar()
 
-    elif opcion == 4:
-        cola = generar_cola(clientes)
+        elif opcion == 4:
+            cola = generar_cola(clientes)
 
-    elif opcion == 5:
-        if cola:
-            cola.mostrar()
-    
-    elif opcion == 6:
-        atender_cola(cola)
+        elif opcion == 5:
+            if cola:
+                cola.mostrar()
+        
+        elif opcion == 6:
+            atender_cola(cola)
 
-    elif opcion == 7:
-        estadisticas(clientes, pila, cola)
+        elif opcion == 7:
+            estadisticas(clientes, pila, cola)
 
-    elif opcion == 8:
-        print("Saliendo del programa.")
-        break
+        elif opcion == 8:
+            print("Saliendo del programa.")
+            break
 
 menu()
